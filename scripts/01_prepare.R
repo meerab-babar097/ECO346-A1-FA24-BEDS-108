@@ -28,3 +28,23 @@ cat("Persons in variant:", nrow(d), "\n")
 cat("Literacy sample:", nrow(lit_sample), "\n")
 cat("Students:", nrow(students), "\n")
 cat("Missing weights:", sum(is.na(d$hhweight)), "\n")
+# ---- 6. Weighted helper functions ----
+# Weighted mean: sum(w * x) / sum(w)
+w_mean <- function(x, w) {
+  keep <- !is.na(x) & !is.na(w)
+  sum(w[keep] * x[keep]) / sum(w[keep])
+}
+
+# Weighted p-th quantile (assignment definition):
+# sort by x, compute cumulative share of weight,
+# take the smallest x where that share is >= p
+w_quantile <- function(x, w, p) {
+  keep <- !is.na(x) & !is.na(w)
+  x <- x[keep]
+  w <- w[keep]
+  o <- order(x)
+  x <- x[o]
+  w <- w[o]
+  cum_share <- cumsum(w) / sum(w)
+  x[which(cum_share >= p)[1]]
+}

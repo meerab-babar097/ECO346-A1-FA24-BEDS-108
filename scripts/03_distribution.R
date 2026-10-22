@@ -3,7 +3,7 @@ library(scales)
 
 source("scripts/01_prepare.R")
 
-# ---- Numbers to report ----
+# ---- 1. Numbers to report ----
 n_students <- nrow(students)
 w_med <- w_quantile(students$ed_total, students$hhweight, 0.5)
 u_med <- median(students$ed_total)
@@ -11,17 +11,12 @@ p10   <- w_quantile(students$ed_total, students$hhweight, 0.1)
 p90   <- w_quantile(students$ed_total, students$hhweight, 0.9)
 ratio <- round(p90 / p10, 2)
 
-# ---- Keep Rs 100 to Rs 1,000,000 (log10 from 2 to 6) ----
+# ---- 2. Keep Rs 100 to Rs 1,000,000 (log10 from 2 to 6) ----
 students <- students %>% mutate(logx = log10(ed_total))
 in_range <- students %>% filter(logx >= 2, logx <= 6)
 n_excl   <- n_students - nrow(in_range)
 
-# ---- Print the report ----
-cat("Students:", n_students, "\n")
-cat("Weighted median:", round(w_med), "| Unweighted median:", round(u_med), "\n")
-cat("Weighted P10:", round(p10), "| P90:", round(p90), "| Ratio:", ratio, "\n")
-cat("Excluded:", n_excl, "\n")
-# ---- Weighted histogram: 40 bins, each 0.1 wide in log10 units ----
+# ---- 3. Weighted histogram: 40 bins, each 0.1 wide in log10 units ----
 hist_df <- in_range %>%
   mutate(bin = pmin(floor(round((logx - 2) / 0.1, 8)) + 1, 40)) %>%
   group_by(bin) %>%
@@ -34,7 +29,7 @@ hist_df <- in_range %>%
 
 ytop <- max(hist_df$density) * 1.05
 
-# ---- Figure ----
+# ---- 4. Figure ----
 p <- ggplot(hist_df, aes(mid, density)) +
   geom_col(width = 0.1, fill = "grey60", colour = "white") +
   geom_vline(xintercept = log10(w_med), linetype = "dashed") +
@@ -61,4 +56,11 @@ p <- ggplot(hist_df, aes(mid, density)) +
         plot.caption = element_text(hjust = 0, size = 8))
 
 ggsave("figures/distribution.svg", plot = p, width = 9, height = 5)
-p
+print(p)
+
+# ---- 5. Report ----
+cat("Students:", n_students, "\n")
+cat("Weighted median:", round(w_med), "| Unweighted median:", round(u_med), "\n")
+cat("Weighted P10:", round(p10), "| P90:", round(p90), "| Ratio:", sprintf("%.2f", ratio), "\n")
+cat("Excluded:", n_excl, "\n")
+cat("Bins:", nrow(hist_df), "| Density check (should be 1):", sum(hist_df$density) * 0.1, "\n")

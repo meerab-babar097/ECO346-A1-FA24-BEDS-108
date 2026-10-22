@@ -1,5 +1,5 @@
 # ECO346-A1-FA24-BEDS-108
-##`Name: Meerab Babar
+Name: Meerab Babar
 **Variant 0: Punjab rural** (prov_code = 2, urban_rural = 1). Data: PSLM 2019-20.
 
 ## How to reproduce
